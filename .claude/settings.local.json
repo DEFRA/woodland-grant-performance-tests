@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -E \"\\\\.\\(jmx|xml|java|properties|yml|yaml|json|js|sh|csv\\)$\")",
+      "Bash(cp \"c:/Defra/src/grants-ui-performance-tests/scenarios/users.csv\" \"c:/Defra/src/woodland-grant-performance-tests/scenarios/users.csv\")",
+      "Bash(cp \"c:/Defra/src/grants-ui-performance-tests/generate-report.sh\" \"c:/Defra/src/woodland-grant-performance-tests/generate-report.sh\")"
+    ]
+  }
+}

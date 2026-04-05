@@ -2,7 +2,7 @@ services:
   development:
     build: .
     volumes:
-      - ./reports:/opt/perftest/reports
+      - ./reports:/reports
     depends_on:
       service:
         condition: service_healthy
@@ -12,9 +12,8 @@ services:
       S3_ENDPOINT: 'http://localstack:4566'
       RESULTS_OUTPUT_S3_PATH: 's3://test-results'
       ENVIRONMENT: local
-      SERVICE_ENDPOINT: localhost
-      SERVICE_PORT: 3000
-      SERVICE_URL_SCHEME: http
+      HOST_URL: 'http://service:3000'
+      GENERATE_REPORT: 'true'
     networks:
       - performance-tests
 
@@ -51,8 +50,7 @@ services:
       - performance-tests
 
   service:
-    # replace service-name with the name of your service being performace tested
-    image: defradigital/service-name:${SERVICE_VERSION:-latest}
+    image: defradigital/grants-ui:${SERVICE_VERSION:-latest}
     ports:
       - '3000:3000'
     links:
@@ -79,4 +77,3 @@ services:
 networks:
   performance-tests:
     driver: bridge
-

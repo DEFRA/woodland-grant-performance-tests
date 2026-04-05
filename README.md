@@ -1,35 +1,104 @@
 # woodland-grant-performance-tests
 
-A JMeter based test runner for the CDP Platform.
+## Overview
 
-- [Licence](#licence)
-  - [About the licence](#about-the-licence)
+Performance test suite for Defra's [grants-ui](https://github.com/DEFRA/grants-ui) platform, maintained by the Grants Application Enablement (GAE) team.
 
-## Build
+## Test Coverage
 
-Test suites are built automatically by the [.github/workflows/publish.yml](.github/workflows/publish.yml) action whenever a change are committed to the `main` branch.
-A successful build results in a Docker container that is capable of running your tests on the CDP Platform and publishing the results to the CDP Portal.
+The suite provides performance testing for the Woodland Management Plan (WMP) grant application journey.
 
-## Run
+## Technology Stack
 
-The performance test suites are designed to be run from the CDP Portal.
-The CDP Platform runs test suites in much the same way it runs any other service, it takes a docker image and runs it as an ECS task, automatically provisioning infrastructure as required.
+- **Grafana k6** for load testing and performance measurement
 
-## Local Testing with Docker Compose
+## Test Scenarios
 
-You can run the entire performance test stack locally using Docker Compose, including LocalStack, Redis, and the target service. This is useful for development, integration testing, or verifying your test scripts **before committing to `main`**, which will trigger GitHub Actions to build and publish the Docker image.
+Individual test scripts are located in the `/scenarios` directory, with each script targeting a specific grant application journey.
 
-### Build the Docker image
+Current test scenarios:
+- `woodland-grant.js` - Woodland Management Plan grant application journey with Defra ID authentication
 
+## Configuration
+
+Test scenarios are parameterized via environment variables:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `HOST_URL` | `https://grants-ui.perf-test.cdp-int.defra.cloud` | Base URL of the grants-ui instance under test |
+| `DURATION_SECONDS` | `180` | Total test duration in seconds |
+| `RAMPUP_SECONDS` | `30` | Time to ramp up to target VU count |
+| `VU_COUNT` | `100` | Number of concurrent virtual users |
+| `P95_THRESHOLD_MS` | `3000` | 95th percentile response time threshold in milliseconds |
+| `GENERATE_REPORT` | `true` | Toggles HTML report generation if not needed |
+
+## Test Assertions
+
+Each test scenario includes:
+
+**Reference Number Assertion:**
+- Validates the confirmation page contains a valid `WMP-` reference number, indicating successful end-to-end submission to GAS
+
+**Page Load Metrics:**
+- Each journey page records its load time as a `duration_<page>` Trend metric (e.g. `duration_start`, `duration_eligibility_land_registered`). These are used for per-page p95 thresholds and reported in the HTML report as page load times sorted by p95 descending.
+
+### Thresholds
+
+The test enforces the following thresholds:
+- Per-page p(95) < `P95_THRESHOLD_MS`ms - 95th percentile page load time for each journey page must be under the configured threshold (default 3000ms). Each journey page has its own `duration_<page>` Trend metric.
+- `http_req_failed` rate == 0 - no HTTP request failures are permitted
+
+## Running Tests
+
+### Via CDP Portal
+
+Tests are executed from the CDP Portal under the **Test Suites** section for the **Perf-Test** environment.
+
+**Execution:**
+1. Navigate to Test Suites in the CDP Portal
+2. Configure the test via environment variables if the defaults need to be overridden
+3. Execute the test
+4. View reports in the portal once the test completes
+
+**Reports:**
+- HTML reports are generated and published to S3
+- Accessible through the CDP Portal interface
+
+### Running Locally
+
+**Prerequisites:**
+- Docker
+
+**Build:**
 ```bash
-docker compose build --no-cache development
+docker build -t woodland-grant-performance-tests .
 ```
 
-This ensures any changes to `entrypoint.sh` or other scripts are picked up properly.
+**Run with defaults:**
+```bash
+# Git Bash on Windows
+MSYS_NO_PATHCONV=1 docker run --rm -v "$(pwd)/reports:/reports" woodland-grant-performance-tests
 
----
+# Linux/Mac
+docker run --rm -v "$(pwd)/reports:/reports" woodland-grant-performance-tests
+```
 
-### Start the full test stack
+**Run with custom parameters:**
+```bash
+# Git Bash on Windows
+MSYS_NO_PATHCONV=1 docker run --rm \
+  -e HOST_URL=http://localhost:3000 \
+  -e DURATION_SECONDS=60 \
+  -e RAMPUP_SECONDS=10 \
+  -e VU_COUNT=10 \
+  -e P95_THRESHOLD_MS=3000 \
+  -v "$(pwd)/reports:/reports" \
+  woodland-grant-performance-tests
+```
+
+Reports are written to the `./reports` directory.
+
+**Using Docker Compose** (includes LocalStack, Redis, and grants-ui):
 
 ```bash
 docker compose up --build
@@ -40,64 +109,63 @@ This brings up:
 * `development`: the container that runs your performance tests
 * `localstack`: simulates AWS S3, SNS, SQS, etc.
 * `redis`: backing service for cache
-* `service`: the application under test
+* `service`: grants-ui, the application under test
 
-Once all services are healthy, your performance tests will automatically start.
+Once all services are healthy, your performance tests will automatically start. Reports are written to `./reports` on your host.
 
----
+## Project Structure
 
-### Replace `service-name` in Compose File
-
-In the `docker-compose.yml`, make sure to replace:
-
-```yaml
-image: defradigital/service-name:${SERVICE_VERSION:-latest}
+```
+woodland-grant-performance-tests/
+├── scenarios/             # k6 test scenarios (.js files)
+│   ├── lib/               # Vendored third-party k6 libraries
+│   ├── woodland-grant.js  # Woodland Management Plan journey
+│   └── users.csv          # User data (CRNs for authentication)
+├── reports/               # Generated test reports (gitignored)
+├── compose/               # Docker Compose support files
+├── Dockerfile             # Container image definition
+├── entrypoint.sh          # Test execution script
+├── generate-report.sh     # HTML report generation script
+└── README.md
 ```
 
-with the actual name of your service’s image.
+## Dependencies
 
-This is the service under test, which must expose a `/health` endpoint and listen on port `3000`.
+Third-party k6 libraries are vendored into `scenarios/lib/` rather than fetched at runtime, to avoid network dependencies during test execution.
 
----
+| File | Source | Version |
+|------|--------|---------|
+| `scenarios/lib/k6chaijs.js` | https://jslib.k6.io/k6chaijs/4.3.4.3/index.js | 4.3.4.3 |
 
-### Notes
-
-* S3 bucket is expected to be `s3://test-results`, automatically created inside LocalStack.
-* Logs and reports are written to `./reports` on your host.
-* `entrypoint.sh` should contain the logic to wait for dependencies and kick off the test run.
-* The `depends_on` healthchecks ensure services like `localstack` and `service` are ready before tests start.
-* If you make changes to test scripts or entrypoints, rerun with:
-
+To update a library, download the new version and replace the file:
 ```bash
-docker compose up --build
+curl -fsSL --ssl-no-revoke https://jslib.k6.io/k6chaijs/<new-version>/index.js -o scenarios/lib/k6chaijs.js
 ```
 
-## Local Testing with LocalStack
+Then update the version in the table above.
 
-### Build a new Docker image
-```
-docker build . -t my-performance-tests
-```
-### Create a Localstack bucket
-```
-aws --endpoint-url=localhost:4566 s3 mb s3://my-bucket
-```
+## Test Data
 
-### Run performance tests
+The `users.csv` file contains Customer Reference Numbers (CRNs) for 700 unique test users. These users match the 700 available users in the `fcp-defra-id-stub` service in **Perf-Test**.
 
-```
-docker run \
--e S3_ENDPOINT='http://host.docker.internal:4566' \
--e RESULTS_OUTPUT_S3_PATH='s3://my-bucket' \
--e AWS_ACCESS_KEY_ID='test' \
--e AWS_SECRET_ACCESS_KEY='test' \
--e AWS_SECRET_KEY='test' \
--e AWS_REGION='eu-west-2' \
-my-performance-tests
+**Format:**
+```csv
+crn
+1000000001
+1000000002
+...
+1000000700
 ```
 
-docker run -e S3_ENDPOINT='http://host.docker.internal:4566' -e RESULTS_OUTPUT_S3_PATH='s3://cdp-infra-dev-test-results/cdp-portal-perf-tests/95a01432-8f47-40d2-8233-76514da2236a' -e AWS_ACCESS_KEY_ID='test' -e AWS_SECRET_ACCESS_KEY='test' -e AWS_SECRET_KEY='test' -e AWS_REGION='eu-west-2' -e ENVIRONMENT='perf-test' my-performance-tests
+## Related Repositories
 
+- [grants-ui](https://github.com/DEFRA/grants-ui) - Grants application frontend service
+- [grants-ui-backend](https://github.com/DEFRA/grants-ui-backend) - Backend service, included in the scope of these tests
+- [fcp-defra-id-stub](https://github.com/DEFRA/fcp-defra-id-stub) - Authentication stub for testing
+
+## Support
+
+For questions or issues, contact the Grants Application Enablement (GAE) team.
 
 ## Licence
 
