@@ -26,9 +26,8 @@ const durationEligibilityGrazingRights = new Trend('duration_eligibility_grazing
 const durationEligibilityValidWmp = new Trend('duration_eligibility_valid_wmp')
 const durationEligibilityHigherTier = new Trend('duration_eligibility_higher_tier')
 const durationEligibilityWmpAgreement = new Trend('duration_eligibility_wmp_agreement')
-const durationTotalAreaOfLandParcels = new Trend('duration_total_area_of_land_parcels')
-const durationTotalAreaOver10YearsOld = new Trend('duration_total_area_over_10_years_old')
-const durationTotalAreaUnder10YearsOld = new Trend('duration_total_area_under_10_years_old')
+const durationLandParcels = new Trend('duration_land_parcels')
+const durationTotalAreaOfWoodland = new Trend('duration_total_area_of_woodland')
 const durationCentreOfWoodland = new Trend('duration_centre_of_woodland')
 const durationWhichForestryCommissionTeam = new Trend('duration_which_forestry_commission_team')
 const durationSummary = new Trend('duration_summary')
@@ -66,9 +65,8 @@ export const options = {
         duration_eligibility_valid_wmp: [`p(95)<${P95_THRESHOLD_MS}`],
         duration_eligibility_higher_tier: [`p(95)<${P95_THRESHOLD_MS}`],
         duration_eligibility_wmp_agreement: [`p(95)<${P95_THRESHOLD_MS}`],
-        duration_total_area_of_land_parcels: [`p(95)<${P95_THRESHOLD_MS}`],
-        duration_total_area_over_10_years_old: [`p(95)<${P95_THRESHOLD_MS}`],
-        duration_total_area_under_10_years_old: [`p(95)<${P95_THRESHOLD_MS}`],
+        duration_land_parcels: [`p(95)<${P95_THRESHOLD_MS}`],
+        duration_total_area_of_woodland: [`p(95)<${P95_THRESHOLD_MS}`],
         duration_centre_of_woodland: [`p(95)<${P95_THRESHOLD_MS}`],
         duration_which_forestry_commission_team: [`p(95)<${P95_THRESHOLD_MS}`],
         duration_summary: [`p(95)<${P95_THRESHOLD_MS}`],
@@ -81,7 +79,7 @@ export const options = {
 }
 
 const users = new SharedArray('users', function () {
-    const data = open('./users.csv').split('\n').slice(1) // Skip header
+    const data = open('./dal-users.csv').split('\n').slice(1) // Skip header
     return data.filter(line => line.trim()).map(line => line.trim())
 })
 
@@ -250,25 +248,20 @@ export default function () {
         group('tasks', () => {
             expect(response.url).to.include('tasks')
             durationTasks.add(response.timings.duration)
-            clickLink('Total area of land parcels')
+            clickLink('Select land parcels')
         })
 
-        group('total-area-of-land-parcels', () => {
-            expect(response.url).to.include('total-area-of-land-parcels')
-            durationTotalAreaOfLandParcels.add(response.timings.duration)
-            submitJourneyForm({ totalHectaresAppliedFor: '50' })
+        group('land-parcels', () => {
+            expect(response.url).to.include('land-parcels')
+            durationLandParcels.add(response.timings.duration)
+            const firstParcel = response.html().find('input[name="landParcels"]').first().attr('value')
+            submitJourneyForm({ landParcels: firstParcel })
         })
 
-        group('total-area-of-land-over-10-years-old', () => {
-            expect(response.url).to.include('total-area-of-land-over-10-years-old')
-            durationTotalAreaOver10YearsOld.add(response.timings.duration)
-            submitJourneyForm({ hectaresTenOrOverYearsOld: '30' })
-        })
-
-        group('total-area-of-land-under-10-years-old', () => {
-            expect(response.url).to.include('total-area-of-land-under-10-years-old')
-            durationTotalAreaUnder10YearsOld.add(response.timings.duration)
-            submitJourneyForm({ hectaresUnderTenYearsOld: '10' })
+        group('total-area-of-woodland', () => {
+            expect(response.url).to.include('total-area-of-woodland')
+            durationTotalAreaOfWoodland.add(response.timings.duration)
+            submitJourneyForm({ oldWoodlandAreaHa: '0.5', newWoodlandAreaHa: '0' })
         })
 
         group('centre-of-woodland', () => {

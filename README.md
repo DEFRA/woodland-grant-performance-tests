@@ -120,7 +120,7 @@ woodland-grant-performance-tests/
 ├── scenarios/             # k6 test scenarios (.js files)
 │   ├── lib/               # Vendored third-party k6 libraries
 │   ├── woodland-grant.js  # Woodland Management Plan journey
-│   └── users.csv          # User data (CRNs for authentication)
+│   └── dal-users.csv      # User data (CRNs for authentication)
 ├── reports/               # Generated test reports (gitignored)
 ├── compose/               # Docker Compose support files
 ├── Dockerfile             # Container image definition
@@ -146,15 +146,13 @@ Then update the version in the table above.
 
 ## Test Data
 
-The `users.csv` file contains Customer Reference Numbers (CRNs) for 700 unique test users. These users match the 700 available users in the `fcp-defra-id-stub` service in **Perf-Test**.
+The `dal-users.csv` file contains Customer Reference Numbers (CRNs) for test users sourced from the DAL stub. These users must exist in the Defra ID stub and DAL stub in both CI and Perf-Test environments.
 
 **Format:**
 ```csv
 crn
-1000000001
-1000000002
+1102838829
 ...
-1000000700
 ```
 
 ## Related Repositories

@@ -60,8 +60,8 @@ awk '
     }
 ' "$METRICS_FILE"
 
-# Calculate p95 per page metric, write duration_stats.csv in journey order
-JOURNEY_ORDER="duration_start duration_check_details duration_exit_check_details duration_tasks duration_eligibility_land_registered duration_exit_eligibility_land_registered duration_eligibility_management_control duration_eligibility_tenant duration_eligibility_countersignature duration_exit_eligibility_countersignature duration_eligibility_tenant_obligations duration_exit_eligibility_tenant_obligations duration_eligibility_grazing_rights duration_eligibility_valid_wmp duration_eligibility_higher_tier duration_eligibility_wmp_agreement duration_total_area_of_land_parcels duration_total_area_over_10_years_old duration_total_area_under_10_years_old duration_centre_of_woodland duration_which_forestry_commission_team duration_summary duration_potential_funding duration_declaration duration_confirmation"
+# Calculate p95 per page metric, write duration_stats.csv
+JOURNEY_ORDER=$([ -f /tmp/k6_page_meta.txt ] && awk -F',' '{print $1}' /tmp/k6_page_meta.txt || true)
 
 > /tmp/duration_stats.csv
 for metric in $JOURNEY_ORDER; do
