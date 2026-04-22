@@ -104,6 +104,10 @@ Reports are written to `./reports/`.
 | `P95_THRESHOLD_MS` | `3000` | p95 response time threshold (ms) |
 | `GENERATE_REPORT` | `true` | Set to `true` to generate and publish an HTML report to S3 |
 
+## HTTP headers
+
+All requests set `Sec-Fetch-Site: same-origin` via the `params` object passed to `navigateTo`, `clickLink`, and `submitForm`. This is required when the grant journey has a start page that checks request state — without it, the server may reject or misroute requests.
+
 ## Adding new journey pages
 
 When a new page is added to the WMP journey:

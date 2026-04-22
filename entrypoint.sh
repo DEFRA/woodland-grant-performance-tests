@@ -28,6 +28,7 @@ if [ "$GENERATE_REPORT" = "true" ]; then
        # Copy the report file to the S3 bucket
        if [ -f "/reports/report.html" ]; then
           aws --endpoint-url=$S3_ENDPOINT s3 cp "/reports/report.html" "$RESULTS_OUTPUT_S3_PATH/index.html"
+          aws --endpoint-url=$S3_ENDPOINT s3 cp "/reports/metrics.json" "$RESULTS_OUTPUT_S3_PATH/metrics.json"
           if [ $? -eq 0 ]; then
             echo "Report file published to $RESULTS_OUTPUT_S3_PATH"
           fi

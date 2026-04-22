@@ -155,7 +155,7 @@ cat > "$OUTPUT_FILE" << 'HTMLHEADER'
 HTMLHEADER
 
 # Add timestamp
-echo "        <p class=\"timestamp\">Generated: $(date -u '+%Y-%m-%d %H:%M:%S UTC')</p>" >> "$OUTPUT_FILE"
+echo "        <p class=\"timestamp\">Generated: $(date -u '+%Y-%m-%d %H:%M:%S UTC') &nbsp;&bull;&nbsp; <a href=\"metrics.json\">Download raw metrics</a></p>" >> "$OUTPUT_FILE"
 
 # Calculate totals for summary
 TOTAL_REQUESTS=$(awk -F',' '{sum+=$2} END {print sum+0}' /tmp/duration_stats.csv)
@@ -301,6 +301,45 @@ ERRORFOOTER
 fi
 
 rm -f /tmp/failed_requests.txt /tmp/error_details.csv
+
+# Extract failed checks
+> /tmp/failed_checks.csv
+grep '"metric":"checks"' "$METRICS_FILE" | grep '"type":"Point"' | grep '"value":0' | while read -r line; do
+    chk=$(echo "$line" | sed -n 's/.*"check":"\([^"]*\)".*/\1/p')
+    grp=$(echo "$line" | sed -n 's/.*"group":"::\([^"]*\)".*/\1/p')
+    echo "${grp:-unknown},${chk:-unknown}" >> /tmp/failed_checks.csv
+done
+
+if [ -s /tmp/failed_checks.csv ]; then
+    cat >> "$OUTPUT_FILE" << 'CHECKHEADER'
+
+        <h2>Failed Checks</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Group</th>
+                    <th>Check</th>
+                </tr>
+            </thead>
+            <tbody>
+CHECKHEADER
+
+    while IFS=',' read -r chk_group chk_name; do
+        cat >> "$OUTPUT_FILE" << CHECKROW
+                <tr>
+                    <td><strong>${chk_group}</strong></td>
+                    <td class="fail">${chk_name}</td>
+                </tr>
+CHECKROW
+    done < /tmp/failed_checks.csv
+
+    cat >> "$OUTPUT_FILE" << 'CHECKFOOTER'
+            </tbody>
+        </table>
+CHECKFOOTER
+fi
+
+rm -f /tmp/failed_checks.csv
 
 # Close HTML
 cat >> "$OUTPUT_FILE" << 'HTMLFOOTER'
