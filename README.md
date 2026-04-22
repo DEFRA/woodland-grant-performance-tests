@@ -68,50 +68,14 @@ Tests are executed from the CDP Portal under the **Test Suites** section for the
 
 **Prerequisites:**
 - Docker
+- grants-ui running locally with the CI compose override (`compose.ci.yml`) so that grants-ui-net friendly URLs are served
 
-**Build:**
+**Run:**
 ```bash
-docker build -t woodland-grant-performance-tests .
-```
-
-**Run with defaults:**
-```bash
-# Git Bash on Windows
-MSYS_NO_PATHCONV=1 docker run --rm -v "$(pwd)/reports:/reports" woodland-grant-performance-tests
-
-# Linux/Mac
-docker run --rm -v "$(pwd)/reports:/reports" woodland-grant-performance-tests
-```
-
-**Run with custom parameters:**
-```bash
-# Git Bash on Windows
-MSYS_NO_PATHCONV=1 docker run --rm \
-  -e HOST_URL=http://localhost:3000 \
-  -e DURATION_SECONDS=60 \
-  -e RAMPUP_SECONDS=10 \
-  -e VU_COUNT=10 \
-  -e P95_THRESHOLD_MS=3000 \
-  -v "$(pwd)/reports:/reports" \
-  woodland-grant-performance-tests
+bash run-local.sh
 ```
 
 Reports are written to the `./reports` directory.
-
-**Using Docker Compose** (includes LocalStack, Redis, and grants-ui):
-
-```bash
-docker compose up --build
-```
-
-This brings up:
-
-* `development`: the container that runs your performance tests
-* `localstack`: simulates AWS S3, SNS, SQS, etc.
-* `redis`: backing service for cache
-* `service`: grants-ui, the application under test
-
-Once all services are healthy, your performance tests will automatically start. Reports are written to `./reports` on your host.
 
 ## Project Structure
 

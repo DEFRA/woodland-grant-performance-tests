@@ -10,9 +10,8 @@ const RAMPUP_SECONDS = __ENV.RAMPUP_SECONDS || 30
 const VU_COUNT = __ENV.VU_COUNT || 100
 const P95_THRESHOLD_MS = __ENV.P95_THRESHOLD_MS || 3000
 
-const durationStart = new Trend('duration_start')
 const durationCheckDetails = new Trend('duration_check_details')
-const durationExitCheckDetails = new Trend('duration_exit_check_details')
+const durationUpdateDetails = new Trend('duration_update_details')
 const durationTasks = new Trend('duration_tasks')
 const durationEligibilityLandRegistered = new Trend('duration_eligibility_land_registered')
 const durationExitEligibilityLandRegistered = new Trend('duration_exit_eligibility_land_registered')
@@ -49,9 +48,8 @@ export const options = {
         },
     },
     thresholds: {
-        duration_start: [`p(95)<${P95_THRESHOLD_MS}`],
         duration_check_details: [`p(95)<${P95_THRESHOLD_MS}`],
-        duration_exit_check_details: [`p(95)<${P95_THRESHOLD_MS}`],
+        duration_update_details: [`p(95)<${P95_THRESHOLD_MS}`],
         duration_tasks: [`p(95)<${P95_THRESHOLD_MS}`],
         duration_eligibility_land_registered: [`p(95)<${P95_THRESHOLD_MS}`],
         duration_exit_eligibility_land_registered: [`p(95)<${P95_THRESHOLD_MS}`],
@@ -86,16 +84,18 @@ const users = new SharedArray('users', function () {
 export default function () {
     let response = null
 
+    const params = { headers: { 'Sec-Fetch-Site': 'same-origin' } }
+
     const navigateTo = function (url) {
-        response = http.get(url)
+        response = http.get(url, params)
     }
 
     const clickLink = function (text) {
-        response = response.clickLink({ selector: `a:contains('${text}')` })
+        response = response.clickLink({ selector: `a:contains('${text}')`, params })
     }
 
     const submitForm = function (fields) {
-        response = response.submitForm({ formSelector: 'form', fields: fields })
+        response = response.submitForm({ formSelector: 'form', fields: fields, params })
     }
 
     const submitJourneyForm = function (fields) {
@@ -117,27 +117,21 @@ export default function () {
                 submitForm({ sbi: sbiValue })
             }
             clickLink('Clear application state')
-            navigateTo(`${HOST_URL}/woodland/start`)
+            navigateTo(`${HOST_URL}/woodland`)
         })
 
-        group('start', () => {
-            expect(response.url).to.include('woodland/start')
-            durationStart.add(response.timings.duration)
-            submitJourneyForm()
-        })
-
-        // check-details: submit No → exit page → Continue → back to check-details → submit Yes
+        // check-details: submit No → update-details page → Back → back to check-details → submit Yes
         group('check-details', () => {
             expect(response.url).to.include('check-details')
             durationCheckDetails.add(response.timings.duration)
             submitJourneyForm({ businessDetailsUpToDate: 'false' })
         })
-
-        group('exit-check-details', () => {
-            expect(response.url).to.include('check-details')
-            expect(response.body).to.include('Contact the RPA to update your details')
-            durationExitCheckDetails.add(response.timings.duration)
-            clickLink('Continue')
+        
+        group('update-details', () => {
+            expect(response.url).to.include('update-details')
+            expect(response.body).to.include('Update your details')
+            durationUpdateDetails.add(response.timings.duration)
+            clickLink('Back')
         })
 
         group('check-details', () => {
@@ -181,7 +175,7 @@ export default function () {
         group('eligibility-countersignature', () => {
             expect(response.url).to.include('eligibility-countersignature')
             durationEligibilityCountersignature.add(response.timings.duration)
-            submitJourneyForm({ countersignature: 'false' })
+            submitJourneyForm({ counterSignature: 'false' })
         })
 
         group('exit-eligibility-countersignature', () => {
@@ -193,7 +187,7 @@ export default function () {
         group('eligibility-countersignature', () => {
             expect(response.url).to.include('eligibility-countersignature')
             durationEligibilityCountersignature.add(response.timings.duration)
-            submitJourneyForm({ countersignature: 'true' })
+            submitJourneyForm({ counterSignature: 'true' })
         })
 
         group('eligibility-tenant', () => {
@@ -261,7 +255,7 @@ export default function () {
         group('total-area-of-woodland', () => {
             expect(response.url).to.include('total-area-of-woodland')
             durationTotalAreaOfWoodland.add(response.timings.duration)
-            submitJourneyForm({ oldWoodlandAreaHa: '0.5', newWoodlandAreaHa: '0' })
+            submitJourneyForm({ hectaresTenOrOverYearsOld: '0.5', hectaresUnderTenYearsOld: '0' })
         })
 
         group('centre-of-woodland', () => {

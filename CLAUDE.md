@@ -49,7 +49,6 @@ All pages are prefixed `/woodland/`:
 
 | Path | Description |
 |---|---|
-| `/start` | Application start page |
 | `/check-details` | Confirm applicant/org details |
 | `/tasks` | Task list |
 | `/eligibility-land-registered` | Land registered with RPA? |
@@ -86,20 +85,13 @@ This specific set of users is required (not arbitrary test CRNs) because they mu
 
 Requires Docker. No Node.js or k6 installation needed.
 
+Use `run-local.sh`, which builds the image and runs the suite against a local grants-ui instance. grants-ui must be running with the CI compose override (`compose.ci.yml`) so that grants-ui-net friendly URLs are served.
+
 ```bash
-# Build
-docker build -t woodland-grant-performance-tests .
-
-# Run (Git Bash on Windows)
-MSYS_NO_PATHCONV=1 docker run --rm -v "$(pwd)/reports:/reports" woodland-grant-performance-tests
-
-# Run (Linux/Mac)
-docker run --rm -v "$(pwd)/reports:/reports" woodland-grant-performance-tests
+bash run-local.sh
 ```
 
 Reports are written to `./reports/`.
-
-Alternatively, use `docker compose up` to run against a local instance of `grants-ui` (see `compose.yml`).
 
 ## Environment variables
 
