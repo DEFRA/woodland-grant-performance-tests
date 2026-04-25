@@ -1,6 +1,7 @@
 #!/bin/bash
 # grants-ui must be running with the CI compose override (compose.ci.yml) so that
 # grants-ui-net friendly URLs are served.
+# e.g. docker compose -f compose.yml -f compose.ha.yml -f compose.land-grants.yml -f compose.ci.yml up -d
 set -e
 
 docker build -t woodland-grant-performance-tests .

@@ -63,6 +63,7 @@ All pages are prefixed `/woodland/`:
 | `/land-parcels` | Select eligible land parcels |
 | `/total-area-of-woodland` | Total area of woodland over and under 10 years old (ha) |
 | `/centre-of-woodland` | Grid reference for centre of woodland |
+| `/woodland-name` | Name of the woodland |
 | `/which-forestry-commission-team` | FC team advising |
 | `/summary` | Check your answers |
 | `/potential-funding` | Potential funding estimate |

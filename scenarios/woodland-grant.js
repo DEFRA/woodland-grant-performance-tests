@@ -28,6 +28,7 @@ const durationEligibilityWmpAgreement = new Trend('duration_eligibility_wmp_agre
 const durationLandParcels = new Trend('duration_land_parcels')
 const durationTotalAreaOfWoodland = new Trend('duration_total_area_of_woodland')
 const durationCentreOfWoodland = new Trend('duration_centre_of_woodland')
+const durationWoodlandName = new Trend('duration_woodland_name')
 const durationWhichForestryCommissionTeam = new Trend('duration_which_forestry_commission_team')
 const durationSummary = new Trend('duration_summary')
 const durationPotentialFunding = new Trend('duration_potential_funding')
@@ -66,6 +67,7 @@ export const options = {
         duration_land_parcels: [`p(95)<${P95_THRESHOLD_MS}`],
         duration_total_area_of_woodland: [`p(95)<${P95_THRESHOLD_MS}`],
         duration_centre_of_woodland: [`p(95)<${P95_THRESHOLD_MS}`],
+        duration_woodland_name: [`p(95)<${P95_THRESHOLD_MS}`],
         duration_which_forestry_commission_team: [`p(95)<${P95_THRESHOLD_MS}`],
         duration_summary: [`p(95)<${P95_THRESHOLD_MS}`],
         duration_potential_funding: [`p(95)<${P95_THRESHOLD_MS}`],
@@ -262,6 +264,12 @@ export default function () {
             expect(response.url).to.include('centre-of-woodland')
             durationCentreOfWoodland.add(response.timings.duration)
             submitJourneyForm({ centreGridReference: 'SP 4178 2432' })
+        })
+
+        group('woodland-name', () => {
+            expect(response.url).to.include('woodland-name')
+            durationWoodlandName.add(response.timings.duration)
+            submitJourneyForm({ woodlandName: 'Test Woodland' })
         })
 
         group('which-forestry-commission-team', () => {
