@@ -244,7 +244,7 @@ export default function () {
         group('tasks', () => {
             expect(response.url).to.include('tasks')
             durationTasks.add(response.timings.duration)
-            clickLink('Select land parcels')
+            clickLink('Land parcels')
         })
 
         group('land-parcels', () => {
