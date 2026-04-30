@@ -145,7 +145,7 @@ export default function () {
         group('tasks', () => {
             expect(response.url).to.include('tasks')
             durationTasks.add(response.timings.duration)
-            clickLink('Land registration')
+            clickLink('All land registered')
         })
 
         // eligibility-land-registered: submit No → exit page → Back → submit Yes
