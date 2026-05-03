@@ -6,6 +6,11 @@
 METRICS_FILE="$1"
 OUTPUT_FILE="$2"
 K6_EXIT_CODE="${3:-0}"
+HOST_URL="${4:-}"
+DURATION_SECONDS="${5:-}"
+RAMPUP_SECONDS="${6:-}"
+VU_COUNT="${7:-}"
+P95_THRESHOLD_MS="${8:-}"
 
 if [ ! -f "$METRICS_FILE" ]; then
     echo "Metrics file not found: $METRICS_FILE"
@@ -156,6 +161,21 @@ HTMLHEADER
 
 # Add timestamp
 echo "        <p class=\"timestamp\">Generated: $(date -u '+%Y-%m-%d %H:%M:%S UTC') &nbsp;&bull;&nbsp; <a href=\"metrics.json\">Download raw metrics</a></p>" >> "$OUTPUT_FILE"
+
+# Add config panel if env vars were provided
+if [ -n "$HOST_URL" ]; then
+    cat >> "$OUTPUT_FILE" << CONFIGPANEL
+        <table style="margin-bottom:30px">
+            <thead><tr><th colspan="2">Test Configuration</th></tr></thead>
+            <tbody>
+                <tr><td><strong>Host</strong></td><td>${HOST_URL}</td></tr>
+                <tr><td><strong>Virtual Users</strong></td><td>${VU_COUNT}</td></tr>
+                <tr><td><strong>Duration</strong></td><td>${DURATION_SECONDS}s (ramp-up ${RAMPUP_SECONDS}s)</td></tr>
+                <tr><td><strong>p95 Threshold</strong></td><td>${P95_THRESHOLD_MS}ms</td></tr>
+            </tbody>
+        </table>
+CONFIGPANEL
+fi
 
 # Calculate totals for summary
 TOTAL_REQUESTS=$(awk -F',' '{sum+=$2} END {print sum+0}' /tmp/duration_stats.csv)

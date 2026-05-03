@@ -21,7 +21,12 @@ K6_EXIT_CODE=$?
 if [ "$GENERATE_REPORT" = "true" ]; then
     # Generate HTML report from metrics
     echo "Generating report"
-    ./generate-report.sh /reports/metrics.json /reports/report.html "$K6_EXIT_CODE"
+    ./generate-report.sh /reports/metrics.json /reports/report.html "$K6_EXIT_CODE" \
+        "${HOST_URL:-https://grants-ui.perf-test.cdp-int.defra.cloud}" \
+        "${DURATION_SECONDS:-180}" \
+        "${RAMPUP_SECONDS:-30}" \
+        "${VU_COUNT:-100}" \
+        "${P95_THRESHOLD_MS:-3000}"
 
     # Publish the results into S3 so they can be displayed in the CDP Portal
     if [ -n "$RESULTS_OUTPUT_S3_PATH" ]; then
