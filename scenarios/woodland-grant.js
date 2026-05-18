@@ -97,7 +97,7 @@ export default function () {
     }
 
     const submitForm = function (fields) {
-        response = response.submitForm({ formSelector: 'form', fields: fields, params })
+        response = response.submitForm({ formSelector: `form:has(input[type='submit'][value='Continue'])`, fields: fields, params })
     }
 
     const submitJourneyForm = function (fields) {
@@ -128,7 +128,7 @@ export default function () {
             durationCheckDetails.add(response.timings.duration)
             submitJourneyForm({ businessDetailsUpToDate: 'false' })
         })
-        
+
         group('update-details', () => {
             expect(response.url).to.include('update-details')
             expect(response.body).to.include('Update your details')
