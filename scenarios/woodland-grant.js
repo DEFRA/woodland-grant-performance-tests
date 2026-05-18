@@ -97,7 +97,7 @@ export default function () {
     }
 
     const submitForm = function (fields) {
-        response = response.submitForm({ formSelector: `form:has(input[type='submit'][value='Continue'])`, fields: fields, params })
+        response = response.submitForm({ formSelector: `form:has(input[type='submit'][value='Save and continue'])`, fields: fields, params })
     }
 
     const submitJourneyForm = function (fields) {
