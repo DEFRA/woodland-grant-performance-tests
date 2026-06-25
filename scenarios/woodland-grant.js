@@ -97,7 +97,7 @@ export default function () {
     }
 
     const submitForm = function (fields) {
-        response = response.submitForm({ formSelector: `form:has(input[type='submit'][value='Save and continue'])`, fields: fields, params })
+        response = response.submitForm({ formSelector: `form:not([action='/cookies'])`, fields: fields, params })
     }
 
     const submitJourneyForm = function (fields) {
@@ -145,7 +145,7 @@ export default function () {
         group('tasks', () => {
             expect(response.url).to.include('tasks')
             durationTasks.add(response.timings.duration)
-            clickLink('All land registered')
+            clickLink('Check your eligibility')
         })
 
         // eligibility-land-registered: submit No → exit page → Back → submit Yes
@@ -244,7 +244,7 @@ export default function () {
         group('tasks', () => {
             expect(response.url).to.include('tasks')
             durationTasks.add(response.timings.duration)
-            clickLink('Land parcels')
+            clickLink('About your woodland')
         })
 
         group('land-parcels', () => {
@@ -281,7 +281,7 @@ export default function () {
         group('tasks', () => {
             expect(response.url).to.include('tasks')
             durationTasks.add(response.timings.duration)
-            clickLink('Check your answers')
+            clickLink('Check and submit application')
         })
 
         group('summary', () => {
