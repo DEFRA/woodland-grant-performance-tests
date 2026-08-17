@@ -96,6 +96,12 @@ export default function () {
         response = response.clickLink({ selector: `a:contains('${text}')`, params })
     }
 
+    // Uses the govuk-back-link class rather than text matching: the phase banner's
+    // "feedback" link also matches `a:contains('Back')` case-insensitively.
+    const clickBackLink = function () {
+        response = response.clickLink({ selector: 'a.govuk-back-link', params })
+    }
+
     const submitForm = function (fields) {
         response = response.submitForm({ formSelector: `form:not([action='/cookies'])`, fields: fields, params })
     }
@@ -133,7 +139,7 @@ export default function () {
             expect(response.url).to.include('update-details')
             expect(response.body).to.include('Update your details')
             durationUpdateDetails.add(response.timings.duration)
-            clickLink('Back')
+            clickBackLink()
         })
 
         group('check-details', () => {
@@ -158,7 +164,7 @@ export default function () {
         group('exit-eligibility-land-registered', () => {
             expect(response.url).to.include('exit-eligibility-land-registered')
             durationExitEligibilityLandRegistered.add(response.timings.duration)
-            clickLink('Back')
+            clickBackLink()
         })
 
         group('eligibility-land-registered', () => {
@@ -183,7 +189,7 @@ export default function () {
         group('exit-eligibility-countersignature', () => {
             expect(response.url).to.include('exit-eligibility-countersignature')
             durationExitEligibilityCountersignature.add(response.timings.duration)
-            clickLink('Back')
+            clickBackLink()
         })
 
         group('eligibility-countersignature', () => {
@@ -208,7 +214,7 @@ export default function () {
         group('exit-eligibility-tenant-obligations', () => {
             expect(response.url).to.include('exit-eligibility-tenant-obligations')
             durationExitEligibilityTenantObligations.add(response.timings.duration)
-            clickLink('Back')
+            clickBackLink()
         })
 
         group('eligibility-tenant-obligations', () => {
