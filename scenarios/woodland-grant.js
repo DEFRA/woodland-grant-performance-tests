@@ -73,6 +73,8 @@ export const options = {
         duration_potential_funding: [`p(95)<${P95_THRESHOLD_MS}`],
         duration_declaration: [`p(95)<${P95_THRESHOLD_MS}`],
         duration_confirmation: [`p(95)<${P95_THRESHOLD_MS}`],
+        // Tolerate a small rate of transient failures rather than failing the whole run on one bad response;
+        // this does not gate on expect() assertion failures (see try/catch in the default function), only on HTTP-level failures.
         http_req_failed: ['rate<0.01']
     }
 }

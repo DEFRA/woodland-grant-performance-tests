@@ -239,6 +239,10 @@ SUMMARY
 
 # Add table rows
 while IFS=',' read -r page requests avg min max p95; do
+    p95_class="duration"
+    if [ -n "$P95_THRESHOLD_MS" ] && awk "BEGIN{exit !($p95 > $P95_THRESHOLD_MS)}"; then
+        p95_class="duration fail"
+    fi
     cat >> "$OUTPUT_FILE" << ROW
                 <tr>
                     <td><strong>${page}</strong></td>
@@ -246,7 +250,7 @@ while IFS=',' read -r page requests avg min max p95; do
                     <td class="duration">${avg}</td>
                     <td class="duration">${min}</td>
                     <td class="duration">${max}</td>
-                    <td class="duration">${p95}</td>
+                    <td class="${p95_class}">${p95}</td>
                 </tr>
 ROW
 done < /tmp/duration_stats.csv
